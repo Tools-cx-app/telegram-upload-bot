@@ -46,7 +46,7 @@ jobs:
           zip -r output/my-app.zip src/
 
       - name: Send CI notification
-        uses: Tools-cx-app/telegram-upload-bot@v1
+        uses: Tools-cx-app/telegram-upload-bot@master
         with:
           bot-token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           chat-id: ${{ secrets.TELEGRAM_CHAT_ID }}
@@ -64,7 +64,7 @@ Use `files` to upload files from another directory or several matching files:
 
 ```yaml
 - name: Send build artifacts
-  uses: Tools-cx-app/telegram-upload-bot@v1
+  uses: Tools-cx-app/telegram-upload-bot@master
   with:
     bot-token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
     chat-id: ${{ secrets.TELEGRAM_CHAT_ID }}
@@ -112,7 +112,7 @@ jobs:
           cp path/to/my-app.zip output/my-app.zip
 
       - name: Send release notification
-        uses: Tools-cx-app/telegram-upload-bot@v1
+        uses: Tools-cx-app/telegram-upload-bot@master
         with:
           bot-token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           chat-id: ${{ secrets.TELEGRAM_CHAT_ID }}
