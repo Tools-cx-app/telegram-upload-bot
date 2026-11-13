@@ -70,8 +70,9 @@ def _git_commit_record(message: str) -> str:
 
 
 async def get_single_commit_fallback() -> tuple[str, str]:
-    commit_url = f"https://github.com/{
-        settings.github_repository}/commit/{settings.github_sha}"
+    commit_url = (
+        f"https://github.com/{settings.github_repository}/commit/{settings.github_sha}"
+    )
     output = await run_git("show", "-s", "--format=%B", "HEAD")
     if output.strip():
         msg = _git_commit_record(output.strip())
@@ -111,10 +112,7 @@ async def generate_msg_ci() -> str:
         if event_commits:
             history_msg = parse_git_log("\n".join(event_commits))
             commit_url = get_url_from_event(payload)
-            logger.info(
-                f"Generated message from {
-                    len(event_commits)} commits in event payload"
-            )
+            logger.info(f"Generated message from {len(event_commits)} commits in event payload")
 
     # 3. Read the checked-out Git history when the event payload is unavailable.
     if (not history_msg or not commit_url) and settings.github_sha:
@@ -122,8 +120,7 @@ async def generate_msg_ci() -> str:
         if git_log_raw:
             history_msg = parse_git_log(git_log_raw)
             commit_url = (
-                f"https://github.com/{settings.github_repository}/commit/{
-                    settings.github_sha}"
+                f"https://github.com/{settings.github_repository}/commit/{settings.github_sha}"
             )
 
     # 4. Final fallback: current commit details.
