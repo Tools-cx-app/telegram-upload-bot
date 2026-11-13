@@ -1,6 +1,9 @@
 # Copyright (C) 2026 meta-magic_mount-rs developers
 # SPDX-License-Identifier: GPL-v3
 
+from asyncio import to_thread
+from html import escape
+
 from . import logger, settings
 from .config import TG_MSG_TEMPLATE_RELEASE, TG_MSG_TEMPLATE_CI
 from .parsing import parse_git_log
@@ -10,7 +13,19 @@ from .gh_helpers import (
     get_commits_from_event,
     get_url_from_event,
     run_git,
+    get_artifacts,
 )
+
+
+async def _artifact_section() -> str:
+    artifacts = await to_thread(get_artifacts)
+    if not artifacts:
+        return ""
+    links = "\n".join(
+        f'<a href="{escape(url, quote=True)}">{escape(name)}</a>'
+        for name, url in artifacts.items()
+    )
+    return f"artifacts:\n{links}\n"
 
 
 def _release_tag(payload: dict) -> str:
@@ -40,7 +55,9 @@ async def generate_msg_release() -> str:
         url = f"https://github.com/{repository}/releases/tag/{tag}"
     else:
         url = f"https://github.com/{repository}/actions/runs/{settings.run_id}"
-    message = TG_MSG_TEMPLATE_RELEASE.format(name=name, url=url)
+    message = TG_MSG_TEMPLATE_RELEASE.format(
+        name=escape(name), url=escape(url, quote=True), artifacts=await _artifact_section()
+    )
     logger.info("Generated Telegram release message")
     return message
 
@@ -110,6 +127,7 @@ async def generate_msg_ci() -> str:
         history_msg, commit_url = await get_single_commit_fallback()
 
     message = TG_MSG_TEMPLATE_CI.format(
+        artifacts=await _artifact_section(),
         commit_message=history_msg.strip(),
         commit_url=commit_url,
         run_no=settings.run_no,

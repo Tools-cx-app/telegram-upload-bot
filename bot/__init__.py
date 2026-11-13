@@ -19,6 +19,10 @@ class Settings(BaseSettings):
     github_event_name: str | None = None
     github_ref_name: str | None = None
     github_ref: str | None = None
+    artifact_names: str = ""
+    github_token: str = ""
+    github_api_url: str = "https://api.github.com"
+    github_server_url: str = "https://github.com"
 
 @dataclass
 class _Cache:
@@ -39,7 +43,6 @@ async def main():
         TG_MSG_EXPECTED_PARSE_MODE_CI,
     )
     from .msg_gen import generate_msg_release, generate_msg_ci
-    from .util import get_dist
     from .telegram import post
 
     logger.info("Starting main function")
@@ -49,6 +52,5 @@ async def main():
     else:
         msg = await generate_msg_ci()
         parse_mode = TG_MSG_EXPECTED_PARSE_MODE_CI
-    files = get_dist()
-    await post(msg, files, parse_mode)
+    await post(msg, parse_mode)
     logger.info("Post done successfully")

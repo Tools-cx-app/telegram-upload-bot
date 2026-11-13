@@ -5,9 +5,74 @@ import json
 import os
 import subprocess
 from asyncio import create_subprocess_exec
+from fnmatch import fnmatchcase
 from pathlib import Path
+from urllib.error import HTTPError, URLError
+from urllib.request import Request, urlopen
 
 from . import cache, logger, settings
+
+
+def get_artifacts() -> dict[str, str]:
+    patterns = list(dict.fromkeys(
+        pattern.strip()
+        for line in settings.artifact_names.splitlines()
+        for pattern in line.split(",")
+        if pattern.strip()
+    ))
+    if not patterns:
+        return {}
+    if not settings.github_token:
+        raise ValueError("A GitHub token with actions:read permission is required for artifact lookup")
+
+    api_url = settings.github_api_url.rstrip("/")
+    run_path = f"{settings.github_repository}/actions/runs/{settings.run_id}"
+    found: dict[str, str] = {}
+    page = 1
+    while True:
+        request = Request(
+            f"{api_url}/repos/{run_path}/artifacts?per_page=100&page={page}",
+            headers={
+                "Accept": "application/vnd.github+json",
+                "Authorization": f"Bearer {settings.github_token}",
+                "X-GitHub-Api-Version": "2022-11-28",
+            },
+        )
+        try:
+            with urlopen(request, timeout=30) as response:
+                artifacts = json.load(response)["artifacts"]
+        except HTTPError as exc:
+            exc.close()
+            raise RuntimeError(
+                f"GitHub artifact lookup failed (HTTP {exc.code}); check actions:read permission"
+            ) from exc
+        except URLError as exc:
+            raise RuntimeError(f"GitHub artifact lookup failed: {exc.reason}") from exc
+        for artifact in artifacts:
+            name = artifact["name"]
+            if not artifact.get("expired", False) and any(
+                fnmatchcase(name, pattern) for pattern in patterns
+            ):
+                found[name] = (
+                    f"{settings.github_server_url.rstrip('/')}/{run_path}"
+                    f"/artifacts/{artifact['id']}"
+                )
+        if len(artifacts) < 100:
+            break
+        page += 1
+
+    missing = [
+        pattern for pattern in patterns
+        if not any(fnmatchcase(name, pattern) for name in found)
+    ]
+    if missing:
+        raise ValueError(f"Artifacts not found or expired in this workflow run: {', '.join(missing)}")
+    return {
+        name: url
+        for pattern in patterns
+        for name, url in found.items()
+        if fnmatchcase(name, pattern)
+    }
 
 
 async def get_git_root() -> Path | None:

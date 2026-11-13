@@ -1,5 +1,5 @@
 name: Telegram upload bot
-description: Send GitHub CI or release details and artifacts to Telegram
+description: Send GitHub CI or release details and artifact links to Telegram
 inputs:
   bot-token:
     description: Telegram bot token
@@ -11,10 +11,14 @@ inputs:
     description: Send a release message instead of a CI message
     required: false
     default: "false"
-  files:
-    description: Glob of files to upload
+  artifact-names:
+    description: Artifact names or glob patterns from this workflow run, separated by newlines or commas
     required: false
-    default: "./output/*.zip"
+    default: ""
+  github-token:
+    description: 'GitHub token with actions:read permission to look up artifacts'
+    required: false
+    default: ${{ github.token }}
 runs:
   using: composite
   steps:
@@ -34,7 +38,10 @@ runs:
         BOT_TOKEN: ${{ inputs.bot-token }}
         CHAT_ID: ${{ inputs.chat-id }}
         IS_RELEASE: ${{ inputs.is-release }}
-        GH_CI_DIST_PATTERN: ${{ inputs.files }}
+        ARTIFACT_NAMES: ${{ inputs.artifact-names }}
+        GITHUB_TOKEN: ${{ inputs.github-token }}
+        GITHUB_API_URL: ${{ github.api_url }}
+        GITHUB_SERVER_URL: ${{ github.server_url }}
         RUN_NO: ${{ github.run_number }}
         RUN_ID: ${{ github.run_id }}
         GITHUB_REPOSITORY: ${{ github.repository }}
