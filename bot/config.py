@@ -5,6 +5,7 @@ PARSING_MAX_LEN = 800
 
 TG_MSG_TEMPLATE_CI = """
 New push to Github
+
 {artifacts}
 
 <pre><code class="language-git">{commit_message}</code></pre>
@@ -15,6 +16,7 @@ TG_MSG_EXPECTED_PARSE_MODE_CI = "html"
 
 TG_MSG_TEMPLATE_RELEASE = """
 New release available: <b>{name}</b>
+
 {artifacts}
 
 <a href="{url}">Detail</a>

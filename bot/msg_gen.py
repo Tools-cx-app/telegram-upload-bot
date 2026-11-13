@@ -25,7 +25,7 @@ async def _artifact_section() -> str:
         f'<a href="{escape(url, quote=True)}">{escape(name)}</a>'
         for name, url in artifacts.items()
     )
-    return f"artifacts:\n{links}\n"
+    return f"Artifacts:\n{links}\n"
 
 
 def _release_tag(payload: dict) -> str:
@@ -43,7 +43,8 @@ def _release_tag(payload: dict) -> str:
 async def generate_msg_release() -> str:
     logger.info("Generating Telegram release message")
     payload = load_event_payload()
-    repository = payload.get("repository", {}).get("full_name") or settings.github_repository
+    repository = payload.get("repository", {}).get(
+        "full_name") or settings.github_repository
     tag = _release_tag(payload)
     if not tag:
         tag = (await run_git("describe", "--tags", "--exact-match", "HEAD")).strip()
@@ -69,7 +70,8 @@ def _git_commit_record(message: str) -> str:
 
 
 async def get_single_commit_fallback() -> tuple[str, str]:
-    commit_url = f"https://github.com/{settings.github_repository}/commit/{settings.github_sha}"
+    commit_url = f"https://github.com/{
+        settings.github_repository}/commit/{settings.github_sha}"
     output = await run_git("show", "-s", "--format=%B", "HEAD")
     if output.strip():
         msg = _git_commit_record(output.strip())
@@ -100,7 +102,8 @@ async def generate_msg_ci() -> str:
                 f"https://github.com/{settings.github_repository}/compare/"
                 f"{before_sha}...{settings.github_sha}"
             )
-            logger.info("Generated message from event payload before-commit comparison")
+            logger.info(
+                "Generated message from event payload before-commit comparison")
 
     # 2. Extract commits directly from the event payload.
     if not history_msg or not commit_url:
@@ -109,7 +112,8 @@ async def generate_msg_ci() -> str:
             history_msg = parse_git_log("\n".join(event_commits))
             commit_url = get_url_from_event(payload)
             logger.info(
-                f"Generated message from {len(event_commits)} commits in event payload"
+                f"Generated message from {
+                    len(event_commits)} commits in event payload"
             )
 
     # 3. Read the checked-out Git history when the event payload is unavailable.
@@ -118,12 +122,14 @@ async def generate_msg_ci() -> str:
         if git_log_raw:
             history_msg = parse_git_log(git_log_raw)
             commit_url = (
-                f"https://github.com/{settings.github_repository}/commit/{settings.github_sha}"
+                f"https://github.com/{settings.github_repository}/commit/{
+                    settings.github_sha}"
             )
 
     # 4. Final fallback: current commit details.
     if not history_msg or not commit_url:
-        logger.warning("No commit history found locally; falling back to single commit info")
+        logger.warning(
+            "No commit history found locally; falling back to single commit info")
         history_msg, commit_url = await get_single_commit_fallback()
 
     message = TG_MSG_TEMPLATE_CI.format(
