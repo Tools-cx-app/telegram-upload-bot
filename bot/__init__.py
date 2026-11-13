@@ -20,6 +20,7 @@ class Settings(BaseSettings):
     github_ref_name: str | None = None
     github_ref: str | None = None
     artifact_names: str = ""
+    tags: str = ""
     github_token: str = ""
     github_api_url: str = "https://api.github.com"
     github_server_url: str = "https://github.com"

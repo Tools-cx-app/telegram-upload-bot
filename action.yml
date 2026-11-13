@@ -15,6 +15,10 @@ inputs:
     description: Artifact names or glob patterns from this workflow run, separated by newlines or commas
     required: false
     default: ""
+  tags:
+    description: Custom tags to include in Telegram messages, separated by newlines or commas
+    required: false
+    default: ""
   github-token:
     description: 'GitHub token with actions:read permission to look up artifacts'
     required: false
@@ -39,6 +43,7 @@ runs:
         CHAT_ID: ${{ inputs.chat-id }}
         IS_RELEASE: ${{ inputs.is-release }}
         ARTIFACT_NAMES: ${{ inputs.artifact-names }}
+        TAGS: ${{ inputs.tags }}
         GITHUB_TOKEN: ${{ inputs.github-token }}
         GITHUB_API_URL: ${{ github.api_url }}
         GITHUB_SERVER_URL: ${{ github.server_url }}

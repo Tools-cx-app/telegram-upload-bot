@@ -140,6 +140,29 @@ class TestArtifactMessages(unittest.IsolatedAsyncioTestCase):
         self.assertIn("v1.0.0", message)
         self.assertLess(message.index("artifacts:"), message.index(">Detail</a>"))
 
+    async def test_custom_tags_are_above_ci_link(self):
+        payload = {
+            "commits": [{"id": "abcdef123", "message": "Build app"}],
+            "head_commit": {"url": "https://github.com/test/repo/commit/abcdef123"},
+        }
+        with patch("bot.msg_gen.load_event_payload", return_value=payload), patch(
+            "bot.msg_gen.get_artifacts", return_value={}
+        ), patch("bot.msg_gen.settings", tags="preview, stable"):
+            message = await generate_msg_ci()
+        tags = "#preview\n#stable"
+        self.assertIn(tags, message)
+        self.assertLess(message.index(tags), message.index("#ci_42"))
+
+    async def test_custom_tags_are_above_release_detail_link(self):
+        with patch("bot.msg_gen.load_event_payload", return_value={}), patch(
+            "bot.msg_gen.get_artifacts", return_value={}
+        ), patch("bot.msg_gen.settings", github_ref_name="v1.0.0",
+                 github_repository="test/repo", tags="preview, stable"):
+            message = await generate_msg_release()
+        tags = "#preview\n#stable"
+        self.assertIn(tags, message)
+        self.assertLess(message.index(tags), message.index(">Detail</a>"))
+
     async def test_only_sends_text(self):
         client = MagicMock()
         client.send_message = AsyncMock()

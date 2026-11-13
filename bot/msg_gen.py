@@ -17,6 +17,16 @@ from .gh_helpers import (
 )
 
 
+def _tags_text() -> str:
+    tags = dict.fromkeys(
+        tag.strip().removeprefix("#")
+        for line in settings.tags.splitlines()
+        for tag in line.split(",")
+        if tag.strip().removeprefix("#")
+    )
+    return "\n".join(f"#{escape(tag)}" for tag in tags)
+
+
 async def _artifact_section() -> str:
     artifacts = await to_thread(get_artifacts)
     if not artifacts:
@@ -57,7 +67,10 @@ async def generate_msg_release() -> str:
     else:
         url = f"https://github.com/{repository}/actions/runs/{settings.run_id}"
     message = TG_MSG_TEMPLATE_RELEASE.format(
-        name=escape(name), url=escape(url, quote=True), artifacts=await _artifact_section()
+        name=escape(name),
+        url=escape(url, quote=True),
+        artifacts=await _artifact_section(),
+        tags=_tags_text(),
     )
     logger.info("Generated Telegram release message")
     return message
@@ -133,6 +146,7 @@ async def generate_msg_ci() -> str:
         artifacts=await _artifact_section(),
         commit_message=history_msg.strip(),
         commit_url=commit_url,
+        tags=_tags_text(),
         run_no=settings.run_no,
         run_id=settings.run_id,
         github_repository=settings.github_repository,

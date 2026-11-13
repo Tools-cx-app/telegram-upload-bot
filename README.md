@@ -12,11 +12,14 @@ or uploading attachments to Telegram.
 | `chat-id` | Yes | — | Telegram chat ID, usually from `secrets` |
 | `is-release` | No | `false` | Send a release notification instead of a CI notification |
 | `artifact-names` | No | Empty | Artifact names or glob patterns from the current workflow run, separated by newlines or commas |
+| `tags` | No | Empty | Custom tags to include in CI and release messages, separated by newlines or commas |
 | `github-token` | No | `${{ github.token }}` | GitHub token with `actions: read` permission to look up artifacts |
 
 The previous `files` input has been replaced by `artifact-names`. Pass the names
 used in `actions/upload-artifact`, or patterns matching those names, rather than local file paths. Leave
 `artifact-names` empty to send only commit or release information.
+Set `tags` to custom names such as `preview` or `stable`; a leading `#` is optional.
+Tags appear above the CI run link or release detail link.
 
 ## Setup
 

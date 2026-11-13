@@ -10,6 +10,7 @@ New push to Github
 
 <pre><code class="language-git">{commit_message}</code></pre>
 See commit detail <a href="{commit_url}">here</a>
+{tags}
 <a href="https://github.com/{github_repository}/actions/runs/{run_id}">#ci_{run_no}</a>
 """.strip()
 TG_MSG_EXPECTED_PARSE_MODE_CI = "html"
@@ -19,6 +20,7 @@ New release available: <b>{name}</b>
 
 {artifacts}
 
+{tags}
 <a href="{url}">Detail</a>
 """
 TG_MSG_EXPECTED_PARSE_MODE_RELEASE = "html"
